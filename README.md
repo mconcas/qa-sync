@@ -1,4 +1,4 @@
-# QA Synchronising script for QA at ALICE Experiment
+# Synchronising script for QA data transfer for the ALICE Experiment
 ## Usage:
 ```
 ./qa-sync <detector> [--dry-run][--sim-only][--data-only]
