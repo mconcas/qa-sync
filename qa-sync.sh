@@ -1,3 +1,18 @@
+#!/bin/bash -e
+
+## Script params
+current_pid=$$
+basename=$0
+detector=$1
+dry_run=$2
+custom_par=$3
+
+## Origin paths
+DATA_ORIGIN_DIR=/home/aliqaoperator/local/QAoutputperiod/$detector/data/
+SIM_ORIGIN_DIR=/home/aliqaoperator/local/QAoutputperiod/$detector/sim/
+
+## Destination paths
+DATA_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/data/
 SIM_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/sim/
 pidfile=/tmp/qa-sync-$detector.pid
 
