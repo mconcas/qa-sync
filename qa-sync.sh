@@ -4,8 +4,7 @@
 current_pid=$$
 basename=$0
 detector=$1
-dry_run=$2
-custom_par=$3
+par=$2
 
 ## Origin paths
 DATA_ORIGIN_DIR=/home/aliqaoperator/local/QAoutputperiod/$detector/data/
@@ -17,8 +16,10 @@ SIM_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/sim/
 pidfile=/tmp/qa-sync-$detector.pid
 
 ## Logfiles
-STDOUT_LOG=/tmp/qa-sync-logs/qa-sync-$detector.out
-STDERR_LOG=/tmp/qa-sync-logs/qa-sync-$detector.err
+LOGDIR_PREFIX=/tmp/qa-sync-logs
+mkdir -p $LOGDIR_PREFIX || true
+STDOUT_LOG=$LOGDIR_PREFIX/qa-sync-$detector.out
+STDERR_LOG=$LOGDIR_PREFIX/qa-sync-$detector.err
 LOGFILES_DURATION=86400 #seconds in a day
 
 ## Settings
@@ -48,15 +49,15 @@ echo "Shell is $SHELL, pid is: $current_pid"
 
 ## Pidfile creation
 echo $current_pid > $pidfile
-[[ "$dry_run" == "--dry-run" ]] && (DRY_RUN=$dry_run && echo "$(date) dryrun requested") || true
+[[ "$par" == "--dry-run" ]] && (DRY_RUN=$par && echo "$(date) dryrun requested") || true
 
 #### The important part is below! #####
 echo -e "Processing detector: $detector" && echo -e "Synchronising directory: $DATA_ORIGIN_DIR"
-[[ "$custom_par" != "--sim-only" ]] && rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $DATA_ORIGIN_DIR $DATA_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true # data
-echo -e "Synchronisation of $DATA_ORIGIN_DIR for detector: $detector done." && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
+[[ "$par" != "--sim-only" ]] && rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $DATA_ORIGIN_DIR $DATA_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true # data
+echo -e "Synchronisation of $DATA_ORIGIN_DIR for detector: $detector done" && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
 
 echo -e "Synchronising directory: $SIM_ORIGIN_DIR\n"
-[[ "$custom_par" != "--data-only" ]] && rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $SIM_ORIGIN_DIR $SIM_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true  # sim
-echo -e "Synchronisation of $SIM_ORIGIN_DIR for detector: $detector done." && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
+[[ "$par" != "--data-only" ]] && rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $SIM_ORIGIN_DIR $SIM_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true  # sim
+echo -e "Synchronisation of $SIM_ORIGIN_DIR for detector: $detector done" && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
 
 trap finish EXIT
