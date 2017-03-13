@@ -1,4 +1,4 @@
-# Scripts for QA data transfer and other minor utilities for the ALICE Experiment
+# Scripts for QA data transfer and other smaller utilities for the ALICE Experiment
 ## Syncronisation script usage:
 ```
 ./qa-sync.sh <detector> [--dry-run][--sim-only][--data-only]
