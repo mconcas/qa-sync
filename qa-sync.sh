@@ -26,24 +26,24 @@ LOGDIR_PREFIX=/tmp/qa-sync-logs
 mkdir -p $LOGDIR_PREFIX || true
 STDOUT_LOG=$LOGDIR_PREFIX/qa-sync-$detector.out
 STDERR_LOG=$LOGDIR_PREFIX/qa-sync-$detector.err
-LOGFILES_DURATION=86400 #seconds in a day
+logfiles_duration=86400 #seconds in a day
 
 ## Settings
-PASSWORD=`cat /home/aliqaoperator/qatest/opensesame.txt`
-OPERATOR=aliqamod
-DRY_RUN=
+password=`cat /home/aliqaoperator/qatest/opensesame.txt`
+operator=aliqamod
+dry_run=
 
-## Delete pidfile at exit
+## Delete PIDFILE at exit
 function finish () {
-  echo "removing pidfile: $pidfile"; rm -f $pidfile;
+  echo "removing PIDFILE: $PIDFILE"; rm -f $PIDFILE;
 }
 
 ## Delete logifiles older than $LOGFILE_DURATION
 function resetlogs () {
   local log_age_stdout=$( date -d "now - $(stat -c "%Y" $STDOUT_LOG) seconds" +%s )
-  [[ "$log_age_stdout" -gt "$LOGFILES_DURATION" ]] && (rm -f $STDOUT_LOG && echo "$(date) Removed $STDOUT_LOG") || echo "$(date) Not deleting: $STDOUT_LOG"
+  [[ "$log_age_stdout" -gt "$logfiles_duration" ]] && (rm -f $STDOUT_LOG && echo "$(date) Removed $STDOUT_LOG") || echo "$(date) Not deleting: $STDOUT_LOG"
   local log_age_stderr=$( date -d "now - $(stat -c "%Y" $STDERR_LOG) seconds" +%s )
-  [[ "$log_age_stdout" -gt "$LOGFILES_DURATION" ]] && (rm -f $STDERR_LOG && echo "$(date) Removed $STDERR_LOG") || echo "$(date) Not deleting: $STDERR_LOG"
+  [[ "$log_age_stdout" -gt "$logfiles_duration" ]] && (rm -f $STDERR_LOG && echo "$(date) Removed $STDERR_LOG") || echo "$(date) Not deleting: $STDERR_LOG"
 }
 
 ##### Main Process #####
@@ -51,11 +51,11 @@ function resetlogs () {
 echo "Shell is $SHELL, pid is: $current_pid"
 
 # Stale processes check and cleanup
-[[ -e $pidfile ]] && (pid=$(cat $pidfile) && rm -f $pidfile && (kill -0 $pid 2>&1 && kill -9 $pid && echo "$(date) Removed stale sync process") || echo "$(date) No stale process found") || echo "No pidfile found"
+[[ -e $PIDFILE ]] && (pid=$(cat $PIDFILE) && rm -f $PIDFILE && (kill -0 $pid 2>&1 && kill -9 $pid && echo "$(date) Removed stale sync process") || echo "$(date) No stale process found") || echo "No PIDFILE found"
 
 ## Pidfile creation
-echo $current_pid > $pidfile
-[[ "$par" == "--dry-run" ]] && (DRY_RUN=$par && echo "$(date) dryrun requested") || true
+echo $current_pid > $PIDFILE
+[[ "$par" == "--dry-run" ]] && (dry_run=$par && echo "$(date) dryrun requested") || true
 
 #### The important part is below! #####
 [[ "$par" != "--sim-only" ]] && echo -e "Processing detector: $detector" && echo -e "Synchronising directory: $DATA_ORIGIN_DIR"
