@@ -7,12 +7,12 @@ detector=$1
 par=$2
 
 ## Origin paths
-DATA_ORIGIN_DIR=/home/aliqaoperator/local/QAoutputperiod/$detector/data/
-SIM_ORIGIN_DIR=/home/aliqaoperator/local/QAoutputperiod/$detector/sim/
+AFS_DATA_SOURCE=/afs/cern.ch/work/a/aliqa$detector/www/data/
+AFS_SIM_SOURCE=/afs/cern.ch/work/a/aliqa$detector/www/sim/
 
 ## Destination paths
-DATA_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/data/
-SIM_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/sim/
+EOS_DATA_DEST=/eos/user/a/aliqa$detector/www/data/
+EOS_SIM_DEST=/eos/user/a/aliqa$detector/www/sim/
 PIDFILE=/tmp/qa-sync-$detector.pid
 
 ## Logfiles
@@ -23,8 +23,6 @@ STDERR_LOG=$LOGDIR_PREFIX/qa-sync-$detector.err
 logfiles_duration=86400 #seconds in a day
 
 ## Settings
-password=`cat /home/aliqaoperator/qatest/opensesame.txt`
-operator=aliqamod
 dry_run=
 
 ## Delete PIDFILE at exit
@@ -52,16 +50,16 @@ echo $current_pid > $PIDFILE
 [[ "$par" == "--dry-run" ]] && (dry_run=$par && echo "$(date) dryrun requested") || true
 
 #### The important part is below! #####
-[[ "$par" != "--sim-only" ]] && echo -e "Processing detector: $detector" && echo -e "Synchronising directory: $DATA_ORIGIN_DIR"
-[[ "$par" != "--sim-only" ]] && rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $DATA_ORIGIN_DIR $DATA_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true # data
-[[ "$par" != "--sim-only" ]] && echo -e "Synchronisation of $DATA_ORIGIN_DIR for detector: $detector done" && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
+[[ "$par" != "--sim-only" ]] && echo -e "Processing detector: $detector" && echo -e "Synchronising directory: $AFS_DATA_SOURCE"
+[[ "$par" != "--sim-only" ]] && rsync -rltgoDvzuhP $dry_run --delete-before $AFS_DATA_SOURCE $EOS_DATA_DEST > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true # data
+[[ "$par" != "--sim-only" ]] && echo -e "Synchronisation of $AFS_DATA_SOURCE for detector: $detector done" && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
 
-[[ "$par" != "--data-only" ]] && echo -e "Synchronising directory: $SIM_ORIGIN_DIR\n"
-[[ "$par" != "--data-only" ]] && rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $SIM_ORIGIN_DIR $SIM_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true  # sim
-[[ "$par" != "--data-only" ]] && echo -e "Synchronisation of $SIM_ORIGIN_DIR for detector: $detector done" && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
+[[ "$par" != "--data-only" ]] && echo -e "Synchronising directory: $AFS_SIM_SOURCE\n"
+[[ "$par" != "--data-only" ]] && rsync -rltgoDvzuhP $dry_run --delete-before $AFS_SIM_SOURCE $EOS_SIM_DEST > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true  # sim
+[[ "$par" != "--data-only" ]] && echo -e "Synchronisation of $AFS_SIM_SOURCE for detector: $detector done" && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
 
-# date | nail -s "Sync report for $detector" -a $STDOUT_LOG -a $STDERR_LOG mconcas@cern.ch || true
-# rm -Rf $STDERR_LOG
-# rm -Rf $STDOUT_LOG
+date | nail -s "Sync report for $detector" -a $STDOUT_LOG -a $STDERR_LOG mconcas@cern.ch || true
+rm -Rf $STDERR_LOG
+rm -Rf $STDOUT_LOG
 
 trap finish EXIT
