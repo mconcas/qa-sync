@@ -11,8 +11,14 @@ DATA_ORIGIN_DIR=/home/aliqaoperator/local/QAoutputperiod/$detector/data/
 SIM_ORIGIN_DIR=/home/aliqaoperator/local/QAoutputperiod/$detector/sim/
 
 ## Destination paths
-DATA_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/data/
-SIM_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/sim/
+DATA_EOS_DIR=
+SIM_EOS_DIR=
+
+[[ "$detector" == "tra" ]] && DATA_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqatrk/www/ESDtrkQA/data/
+[[ "$detector" != "tra" ]] && DATA_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/data/
+[[ "$detector" == "tra" ]] && SIM_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqatrk/www/ESDtrkQA/sim/
+[[ "$detector" != "tra" ]] && SIM_EOS_DIR=lxplus.cern.ch:/eos/user/a/aliqa$detector/www/sim/
+
 pidfile=/tmp/qa-sync-$detector.pid
 
 ## Logfiles
@@ -53,11 +59,11 @@ echo $current_pid > $pidfile
 
 #### The important part is below! #####
 [[ "$par" != "--sim-only" ]] && echo -e "Processing detector: $detector" && echo -e "Synchronising directory: $DATA_ORIGIN_DIR"
-[[ "$par" != "--sim-only" ]] && rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $DATA_ORIGIN_DIR $DATA_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true # data
+[[ "$par" != "--sim-only" ]] && echo rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $DATA_ORIGIN_DIR $DATA_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true # data
 [[ "$par" != "--sim-only" ]] && echo -e "Synchronisation of $DATA_ORIGIN_DIR for detector: $detector done" && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
 
 [[ "$par" != "--data-only" ]] && echo -e "Synchronising directory: $SIM_ORIGIN_DIR\n"
-[[ "$par" != "--data-only" ]] && rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $SIM_ORIGIN_DIR $SIM_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true  # sim
+[[ "$par" != "--data-only" ]] && echo rsync -rltgoDvzuhP $DRY_RUN --rsh="sshpass -p $PASSWORD ssh -l $OPERATOR" $SIM_ORIGIN_DIR $SIM_EOS_DIR > >(tee $STDOUT_LOG) 2> >(tee $STDERR_LOG >&2) || true  # sim
 [[ "$par" != "--data-only" ]] && echo -e "Synchronisation of $SIM_ORIGIN_DIR for detector: $detector done" && echo -e "Logfiles at: $STDOUT_LOG and $STDERR_LOG"
 
 # date | nail -s "Sync report for $detector" -a $STDOUT_LOG -a $STDERR_LOG mconcas@cern.ch || true
