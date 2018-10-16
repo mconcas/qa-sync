@@ -13,5 +13,5 @@ stat $eos_path > /dev/null
 ### Main
 date=$(date +%s)
 export EOS_MGM_URL=root://eosuser.cern.ch
-echo -e "$date\n$" >> $eos_quota_logfle && eos quota $eos_path >> $eos_quota_logfle
+echo -e "$date\n$" >> $eos_quota_logfle && eos quota -m $eos_path >> $eos_quota_logfle
 
